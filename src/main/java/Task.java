@@ -22,5 +22,9 @@ public class Task {
     public void markUndone() {
         this.isDone = false;
     }
-
+    @Override
+    public String toString() {
+        String status = this.isDone ? "[X]" : "[ ]";
+        return status + " " + this.getDescription();
+    }
 }
