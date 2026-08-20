@@ -1,10 +1,14 @@
 public class Task {
+    /** The possible states of a task. */
+    public enum TaskStatus {
+        DONE, NOT_DONE
+    }
+
     private String description;
-    private boolean isDone;
+    private TaskStatus status = TaskStatus.NOT_DONE;
 
     public Task(String description) {
         this.description = description;
-        this.isDone = false;
     }
 
     public String getDescription() {
@@ -12,19 +16,20 @@ public class Task {
     }
 
     public boolean isDone() {
-        return this.isDone;
+        return this.status == TaskStatus.DONE;
     }
 
     public void markDone() {
-        this.isDone = true;
+        this.status = TaskStatus.DONE;
     }
 
     public void markUndone() {
-        this.isDone = false;
+        this.status = TaskStatus.NOT_DONE;
     }
+
     @Override
     public String toString() {
-        String status = this.isDone ? "[X]" : "[ ]";
-        return status + " " + this.getDescription();
+        String statusIcon = this.status == TaskStatus.DONE ? "[X]" : "[ ]";
+        return statusIcon + " " + this.getDescription();
     }
 }
