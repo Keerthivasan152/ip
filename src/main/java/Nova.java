@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Nova {
@@ -10,8 +11,7 @@ public class Nova {
 
         System.out.println(banner);
         System.out.println("Hello! I'm Nova. What can I do for you?");
-        Task[] tasks = new Task[100];
-        int taskCount = 0;
+        ArrayList<Task> tasks = new ArrayList<>();
         Scanner scanner = new Scanner(System.in);
         while (true) {
             String input = scanner.nextLine();
@@ -22,17 +22,17 @@ public class Nova {
                 System.out.println("Bye. Hope to see you again soon!");
                 break;
             } else if (command.equals("list")) {
-                for (int i = 0; i < taskCount; i++) {
-                    System.out.println((i + 1) + "." + tasks[i].toString());
+                for (int i = 0; i < tasks.size(); i++) {
+                    System.out.println((i + 1) + "." + tasks.get(i).toString());
                 }
             } else if (command.equals("todo")) {
                 if (parts.length == 2 && !parts[1].trim().isEmpty()) {
                     String description = parts[1].trim();
-                    tasks[taskCount] = new Todo(description);
+                    Task task = new Todo(description);
+                    tasks.add(task);
                     System.out.println("Got it. I've added this task:");
-                    System.out.println(tasks[taskCount].toString());
-                    System.out.println("Now you have " + (taskCount + 1) + " tasks in the list.");
-                    taskCount++;
+                    System.out.println(task.toString());
+                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
                 } else {
                     System.out.println("The description of a todo cannot be empty.");
                 }
@@ -46,11 +46,11 @@ public class Nova {
                 if (valid) {
                     String description = byParts[0].trim();
                     String by = byParts[1].trim();
-                    tasks[taskCount] = new Deadline(description, by);
+                    Task task = new Deadline(description, by);
+                    tasks.add(task);
                     System.out.println("Got it. I've added this task:");
-                    System.out.println(tasks[taskCount].toString());
-                    System.out.println("Now you have " + (taskCount + 1) + " tasks in the list.");
-                    taskCount++;
+                    System.out.println(task.toString());
+                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
                 } else {
                     System.out.println("Please give a deadline like: deadline <description> /by <date>");
                 }
@@ -68,32 +68,44 @@ public class Nova {
                     String description = fromParts[0].trim();
                     String from = toParts[0].trim();
                     String to = toParts[1].trim();
-                    tasks[taskCount] = new Event(description, from, to);
+                    Task task = new Event(description, from, to);
+                    tasks.add(task);
                     System.out.println("Got it. I've added this task:");
-                    System.out.println(tasks[taskCount].toString());
-                    System.out.println("Now you have " + (taskCount + 1) + " tasks in the list.");
-                    taskCount++;
+                    System.out.println(task.toString());
+                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
                 } else {
                     System.out.println("Please give an event like: event <description> /from <start> /to <end>");
                 }
             } else if (command.equals("mark") || command.equals("unmark")) {
                 if (parts.length == 2) {
-                    int index = getTaskIndex(parts[1], taskCount);
+                    int index = getTaskIndex(parts[1], tasks.size());
                     if (index >= 0) {
                         if (command.equals("mark")) {
-                            tasks[index].markDone();
+                            tasks.get(index).markDone();
                             System.out.println("Nice! I've marked this task as done: ");
                         } else {
-                            tasks[index].markUndone();
+                            tasks.get(index).markUndone();
                             System.out.println("Ok, I've marked this task as not done yet: ");
                         }
-                        System.out.println(tasks[index].toString());
+                        System.out.println(tasks.get(index).toString());
                     }
                 } else {
                     System.out.println("Please give a task number, e.g. mark 2");
                 }
+            } else if (command.equals("delete")) {
+                if (parts.length == 2) {
+                    int index = getTaskIndex(parts[1], tasks.size());
+                    if (index >= 0) {
+                        Task removed = tasks.remove(index);
+                        System.out.println("Noted. I've removed this task:");
+                        System.out.println(removed.toString());
+                        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                    }
+                } else {
+                    System.out.println("Please give a task number, e.g. delete 2");
+                }
             } else {
-                System.out.println("I don't know that command. Try: todo, deadline, event, list, mark, unmark, bye");
+                System.out.println("I don't know that command. Try: todo, deadline, event, list, mark, unmark, delete, bye");
             }
         }
     }
