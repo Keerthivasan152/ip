@@ -2,6 +2,7 @@ package nova;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -111,6 +112,20 @@ public class Nova {
                     }
                 } else {
                     ui.showError(Ui.MESSAGE_NUMBER_REQUIRED);
+                }
+            } else if (command.equals("find")) {
+                if (parts.length == 2 && !parts[1].trim().isEmpty()) {
+                    String keyword = parts[1].trim();
+                    ArrayList<Task> matches = new ArrayList<>();
+                    for (int i = 0; i < taskList.size(); i++) {
+                        Task task = taskList.get(i);
+                        if (task.getDescription().toLowerCase().contains(keyword.toLowerCase())) {
+                            matches.add(task);
+                        }
+                    }
+                    ui.showFindResults(matches);
+                } else {
+                    ui.showError(Ui.MESSAGE_FIND_EMPTY);
                 }
             } else {
                 ui.showError(Ui.MESSAGE_INVALID_COMMAND);
