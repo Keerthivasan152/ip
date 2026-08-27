@@ -23,3 +23,11 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    ```
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
+
+## Setting up with Gradle
+
+Alternatively, the project is set up to build with Gradle:
+
+1. Run `./gradlew run` (Windows: `gradlew.bat run`) to start the chatbot.
+2. Run `./gradlew test` to run the automated tests.
+3. Run `./gradlew shadowJar` to build a runnable JAR at `build/libs/nova.jar`.
