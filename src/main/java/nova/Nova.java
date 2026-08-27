@@ -2,45 +2,33 @@ package nova;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Nova {
     public static void main(String[] args) {
-        String banner = " _   _\n"
-                + "| \\ | | _____   ____ _\n"
-                + "|  \\| |/ _ \\ \\ / / _` |\n"
-                + "| |\\  | (_) \\ V / (_| |\n"
-                + "|_| \\_|\\___/ \\_/ \\__,_|\n";
-
-        System.out.println(banner);
-        System.out.println("Hello! I'm Nova. What can I do for you?");
-        ArrayList<Task> tasks = Storage.load();
+        Ui ui = new Ui();
+        TaskList taskList = new TaskList(Storage.load());
         Scanner scanner = new Scanner(System.in);
+        ui.greet();
         while (true) {
             String input = scanner.nextLine();
             String[] parts = input.split(" ", 2);
             String command = parts[0];
 
             if (command.equals("bye")) {
-                Storage.save(tasks);
-                System.out.println("Bye. Hope to see you again soon!");
+                Storage.save(taskList.getAll());
+                ui.showBye();
                 break;
             } else if (command.equals("list")) {
-                for (int i = 0; i < tasks.size(); i++) {
-                    System.out.println((i + 1) + "." + tasks.get(i).toString());
-                }
+                ui.showList(taskList);
             } else if (command.equals("todo")) {
                 if (parts.length == 2 && !parts[1].trim().isEmpty()) {
-                    String description = parts[1].trim();
-                    Task task = new Todo(description);
-                    tasks.add(task);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println(task.toString());
-                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                    Storage.save(tasks);
+                    Task task = new Todo(parts[1].trim());
+                    taskList.add(task);
+                    ui.showTaskAdded(task, taskList.size());
+                    Storage.save(taskList.getAll());
                 } else {
-                    System.out.println("The description of a todo cannot be empty.");
+                    ui.showError(Ui.MESSAGE_TODO_EMPTY);
                 }
             } else if (command.equals("deadline")) {
                 String rest = parts.length == 2 ? parts[1] : "";
@@ -50,20 +38,17 @@ public class Nova {
                         && !byParts[0].trim().isEmpty()
                         && !byParts[1].trim().isEmpty();
                 if (valid) {
-                    String description = byParts[0].trim();
                     LocalDate by = parseDate(byParts[1]);
                     if (by != null) {
-                        Task task = new Deadline(description, by);
-                        tasks.add(task);
-                        System.out.println("Got it. I've added this task:");
-                        System.out.println(task.toString());
-                        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                        Storage.save(tasks);
+                        Task task = new Deadline(byParts[0].trim(), by);
+                        taskList.add(task);
+                        ui.showTaskAdded(task, taskList.size());
+                        Storage.save(taskList.getAll());
                     } else {
-                        System.out.println("Invalid date: use yyyy-MM-dd, e.g. deadline return book /by 2026-08-28");
+                        ui.showError(Ui.MESSAGE_INVALID_DATE);
                     }
                 } else {
-                    System.out.println("Please give a deadline like: deadline <description> /by <date>");
+                    ui.showError(Ui.MESSAGE_INVALID_DEADLINE);
                 }
             } else if (command.equals("event")) {
                 String rest = parts.length == 2 ? parts[1] : "";
@@ -76,54 +61,49 @@ public class Nova {
                         && !toParts[0].trim().isEmpty()
                         && !toParts[1].trim().isEmpty();
                 if (valid) {
-                    String description = fromParts[0].trim();
                     LocalDate from = parseDate(toParts[0]);
                     LocalDate to = parseDate(toParts[1]);
                     if (from != null && to != null) {
-                        Task task = new Event(description, from, to);
-                        tasks.add(task);
-                        System.out.println("Got it. I've added this task:");
-                        System.out.println(task.toString());
-                        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                        Storage.save(tasks);
+                        Task task = new Event(fromParts[0].trim(), from, to);
+                        taskList.add(task);
+                        ui.showTaskAdded(task, taskList.size());
+                        Storage.save(taskList.getAll());
                     } else {
-                        System.out.println("Invalid date: use yyyy-MM-dd, e.g. event meeting /from 2026-08-28 /to 2026-08-28");
+                        ui.showError(Ui.MESSAGE_INVALID_DATE);
                     }
                 } else {
-                    System.out.println("Please give an event like: event <description> /from <start> /to <end>");
+                    ui.showError(Ui.MESSAGE_INVALID_EVENT);
                 }
             } else if (command.equals("mark") || command.equals("unmark")) {
                 if (parts.length == 2) {
-                    int index = getTaskIndex(parts[1], tasks.size());
+                    int index = getTaskIndex(parts[1], taskList.size(), ui);
                     if (index >= 0) {
-                        if (command.equals("mark")) {
-                            tasks.get(index).markDone();
-                            System.out.println("Nice! I've marked this task as done: ");
+                        Task task = taskList.get(index);
+                        boolean done = command.equals("mark");
+                        if (done) {
+                            task.markDone();
                         } else {
-                            tasks.get(index).markUndone();
-                            System.out.println("Ok, I've marked this task as not done yet: ");
+                            task.markUndone();
                         }
-                        System.out.println(tasks.get(index).toString());
-                        Storage.save(tasks);
+                        ui.showTaskStatus(task, done);
+                        Storage.save(taskList.getAll());
                     }
                 } else {
-                    System.out.println("Please give a task number, e.g. mark 2");
+                    ui.showError(Ui.MESSAGE_NUMBER_REQUIRED);
                 }
             } else if (command.equals("delete")) {
                 if (parts.length == 2) {
-                    int index = getTaskIndex(parts[1], tasks.size());
+                    int index = getTaskIndex(parts[1], taskList.size(), ui);
                     if (index >= 0) {
-                        Task removed = tasks.remove(index);
-                        System.out.println("Noted. I've removed this task:");
-                        System.out.println(removed.toString());
-                        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                        Storage.save(tasks);
+                        Task removed = taskList.remove(index);
+                        ui.showTaskDeleted(removed, taskList.size());
+                        Storage.save(taskList.getAll());
                     }
                 } else {
-                    System.out.println("Please give a task number, e.g. delete 2");
+                    ui.showError(Ui.MESSAGE_NUMBER_REQUIRED);
                 }
             } else {
-                System.out.println("I don't know that command. Try: todo, deadline, event, list, mark, unmark, delete, bye");
+                ui.showError(Ui.MESSAGE_INVALID_COMMAND);
             }
         }
     }
@@ -136,16 +116,16 @@ public class Nova {
         }
     }
 
-    private static int getTaskIndex(String argument, int taskCount) {
+    private static int getTaskIndex(String argument, int taskCount, Ui ui) {
         int number;
         try {
             number = Integer.parseInt(argument);
         } catch (NumberFormatException e) {
-            System.out.println("That doesn't look like a valid task number, e.g. mark 2");
+            ui.showError(Ui.MESSAGE_INVALID_NUMBER);
             return -1;
         }
         if (number < 1 || number > taskCount) {
-            System.out.println("There's no task at number " + number + ". You have " + taskCount + " tasks.");
+            ui.showNoTaskError(number, taskCount);
             return -1;
         }
         return number - 1;
