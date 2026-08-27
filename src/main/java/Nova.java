@@ -11,7 +11,7 @@ public class Nova {
 
         System.out.println(banner);
         System.out.println("Hello! I'm Nova. What can I do for you?");
-        ArrayList<Task> tasks = new ArrayList<>();
+        ArrayList<Task> tasks = Storage.load();
         Scanner scanner = new Scanner(System.in);
         while (true) {
             String input = scanner.nextLine();
@@ -19,6 +19,7 @@ public class Nova {
             String command = parts[0];
 
             if (command.equals("bye")) {
+                Storage.save(tasks);
                 System.out.println("Bye. Hope to see you again soon!");
                 break;
             } else if (command.equals("list")) {
