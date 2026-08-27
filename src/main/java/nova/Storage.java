@@ -22,10 +22,18 @@ public class Storage {
 
     private final String path;
 
+    /**
+     * Creates a storage that saves to and loads from the default file.
+     */
     public Storage() {
         this.path = DEFAULT_PATH;
     }
 
+    /**
+     * Creates a storage that saves to and loads from the given file.
+     *
+     * @param path the save file path
+     */
     public Storage(String path) {
         this.path = path;
     }

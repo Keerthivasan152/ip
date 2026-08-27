@@ -4,7 +4,16 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Scanner;
 
+/**
+ * The chatbot application. Reads commands from the user, updates the task list,
+ * persists it to disk via {@link Storage} and prints responses via {@link Ui}.
+ */
 public class Nova {
+    /**
+     * Runs the chatbot loop until the user types "bye".
+     *
+     * @param args unused
+     */
     public static void main(String[] args) {
         Ui ui = new Ui();
         Storage storage = new Storage();
@@ -109,6 +118,12 @@ public class Nova {
         }
     }
 
+    /**
+     * Parses a date string in the ISO format yyyy-MM-dd.
+     *
+     * @param text the date string to parse
+     * @return the parsed date, or null if the text is not a valid date
+     */
     private static LocalDate parseDate(String text) {
         try {
             return LocalDate.parse(text.trim());
@@ -117,6 +132,15 @@ public class Nova {
         }
     }
 
+    /**
+     * Converts a one-based task number from the user to a zero-based index.
+     * Prints an error message if the argument is not a number or is out of range.
+     *
+     * @param argument the task number given by the user
+     * @param taskCount the number of tasks in the list
+     * @param ui the ui used to print error messages
+     * @return the zero-based index, or -1 if the argument is invalid
+     */
     private static int getTaskIndex(String argument, int taskCount, Ui ui) {
         int number;
         try {
