@@ -7,7 +7,8 @@ import java.util.Scanner;
 public class Nova {
     public static void main(String[] args) {
         Ui ui = new Ui();
-        TaskList taskList = new TaskList(Storage.load());
+        Storage storage = new Storage();
+        TaskList taskList = new TaskList(storage.load());
         Scanner scanner = new Scanner(System.in);
         ui.greet();
         while (true) {
@@ -16,7 +17,7 @@ public class Nova {
             String command = parts[0];
 
             if (command.equals("bye")) {
-                Storage.save(taskList.getAll());
+                storage.save(taskList.getAll());
                 ui.showBye();
                 break;
             } else if (command.equals("list")) {
@@ -26,7 +27,7 @@ public class Nova {
                     Task task = new Todo(parts[1].trim());
                     taskList.add(task);
                     ui.showTaskAdded(task, taskList.size());
-                    Storage.save(taskList.getAll());
+                    storage.save(taskList.getAll());
                 } else {
                     ui.showError(Ui.MESSAGE_TODO_EMPTY);
                 }
@@ -43,7 +44,7 @@ public class Nova {
                         Task task = new Deadline(byParts[0].trim(), by);
                         taskList.add(task);
                         ui.showTaskAdded(task, taskList.size());
-                        Storage.save(taskList.getAll());
+                        storage.save(taskList.getAll());
                     } else {
                         ui.showError(Ui.MESSAGE_INVALID_DATE);
                     }
@@ -67,7 +68,7 @@ public class Nova {
                         Task task = new Event(fromParts[0].trim(), from, to);
                         taskList.add(task);
                         ui.showTaskAdded(task, taskList.size());
-                        Storage.save(taskList.getAll());
+                        storage.save(taskList.getAll());
                     } else {
                         ui.showError(Ui.MESSAGE_INVALID_DATE);
                     }
@@ -86,7 +87,7 @@ public class Nova {
                             task.markUndone();
                         }
                         ui.showTaskStatus(task, done);
-                        Storage.save(taskList.getAll());
+                        storage.save(taskList.getAll());
                     }
                 } else {
                     ui.showError(Ui.MESSAGE_NUMBER_REQUIRED);
@@ -97,7 +98,7 @@ public class Nova {
                     if (index >= 0) {
                         Task removed = taskList.remove(index);
                         ui.showTaskDeleted(removed, taskList.size());
-                        Storage.save(taskList.getAll());
+                        storage.save(taskList.getAll());
                     }
                 } else {
                     ui.showError(Ui.MESSAGE_NUMBER_REQUIRED);

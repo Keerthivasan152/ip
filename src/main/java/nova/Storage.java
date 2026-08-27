@@ -17,19 +17,29 @@ import java.util.Scanner;
  *       E | NOT_DONE | project meeting | 2026-08-28 | 2026-08-29
  */
 public class Storage {
-    private static final String PATH = "data/nova.txt";
+    private static final String DEFAULT_PATH = "data/nova.txt";
     private static final String SEPARATOR = " | ";
+
+    private final String path;
+
+    public Storage() {
+        this.path = DEFAULT_PATH;
+    }
+
+    public Storage(String path) {
+        this.path = path;
+    }
 
     /**
      * Writes all tasks to the save file, one task per line.
-     * Creates the data directory if it does not exist yet.
+     * Creates the parent directory if it does not exist yet.
      *
      * @param tasks the tasks to save
      */
-    public static void save(ArrayList<Task> tasks) {
+    public void save(ArrayList<Task> tasks) {
         try {
-            new File(PATH).getParentFile().mkdirs();
-            FileWriter writer = new FileWriter(PATH);
+            new File(this.path).getParentFile().mkdirs();
+            FileWriter writer = new FileWriter(this.path);
             for (Task task : tasks) {
                 writer.write(toFileLine(task) + System.lineSeparator());
             }
@@ -46,10 +56,10 @@ public class Storage {
      *
      * @return the loaded tasks, or an empty list if there is nothing to load
      */
-    public static ArrayList<Task> load() {
+    public ArrayList<Task> load() {
         ArrayList<Task> tasks = new ArrayList<>();
         try {
-            Scanner scanner = new Scanner(new File(PATH));
+            Scanner scanner = new Scanner(new File(this.path));
             while (scanner.hasNextLine()) {
                 Task task = parseLine(scanner.nextLine());
                 if (task != null) {
@@ -63,7 +73,7 @@ public class Storage {
         return tasks;
     }
 
-    private static String toFileLine(Task task) {
+    private String toFileLine(Task task) {
         String status = task.isDone() ? "DONE" : "NOT_DONE";
         if (task instanceof Deadline) {
             Deadline d = (Deadline) task;
