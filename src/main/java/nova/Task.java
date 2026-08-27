@@ -1,3 +1,5 @@
+package nova;
+
 public class Task {
     /** The possible states of a task. */
     public enum TaskStatus {
