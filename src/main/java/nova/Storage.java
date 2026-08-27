@@ -38,12 +38,6 @@ public class Storage {
         this.path = path;
     }
 
-    /**
-     * Writes all tasks to the save file, one task per line.
-     * Creates the parent directory if it does not exist yet.
-     *
-     * @param tasks the tasks to save
-     */
     public void save(ArrayList<Task> tasks) {
         try {
             new File(this.path).getParentFile().mkdirs();
@@ -57,13 +51,6 @@ public class Storage {
         }
     }
 
-    /**
-     * Loads tasks from the save file.
-     * Returns an empty list if the file does not exist yet, and
-     * silently skips any malformed lines so one bad line cannot break startup.
-     *
-     * @return the loaded tasks, or an empty list if there is nothing to load
-     */
     public ArrayList<Task> load() {
         ArrayList<Task> tasks = new ArrayList<>();
         try {
@@ -103,26 +90,26 @@ public class Storage {
         Task task;
         try {
             switch (parts[0]) {
-            case "T":
-                if (parts.length != 3) {
+                case "T":
+                    if (parts.length != 3) {
+                        return null;
+                    }
+                    task = new Todo(parts[2]);
+                    break;
+                case "D":
+                    if (parts.length != 4) {
+                        return null;
+                    }
+                    task = new Deadline(parts[2], LocalDate.parse(parts[3]));
+                    break;
+                case "E":
+                    if (parts.length != 5) {
+                        return null;
+                    }
+                    task = new Event(parts[2], LocalDate.parse(parts[3]), LocalDate.parse(parts[4]));
+                    break;
+                default:
                     return null;
-                }
-                task = new Todo(parts[2]);
-                break;
-            case "D":
-                if (parts.length != 4) {
-                    return null;
-                }
-                task = new Deadline(parts[2], LocalDate.parse(parts[3]));
-                break;
-            case "E":
-                if (parts.length != 5) {
-                    return null;
-                }
-                task = new Event(parts[2], LocalDate.parse(parts[3]), LocalDate.parse(parts[4]));
-                break;
-            default:
-                return null;
             }
         } catch (DateTimeParseException e) {
             return null; // malformed line

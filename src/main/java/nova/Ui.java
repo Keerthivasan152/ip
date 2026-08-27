@@ -5,12 +5,17 @@ package nova;
  */
 public class Ui {
     public static final String MESSAGE_TODO_EMPTY = "The description of a todo cannot be empty.";
-    public static final String MESSAGE_INVALID_DEADLINE = "Please give a deadline like: deadline <description> /by <date>";
-    public static final String MESSAGE_INVALID_EVENT = "Please give an event like: event <description> /from <start> /to <end>";
-    public static final String MESSAGE_INVALID_DATE = "Invalid date: use yyyy-MM-dd, e.g. deadline return book /by 2026-08-28";
-    public static final String MESSAGE_INVALID_NUMBER = "That doesn't look like a valid task number, e.g. mark 2";
+    public static final String MESSAGE_INVALID_DEADLINE =
+            "Please give a deadline like: deadline <description> /by <date>";
+    public static final String MESSAGE_INVALID_EVENT =
+            "Please give an event like: event <description> /from <start> /to <end>";
+    public static final String MESSAGE_INVALID_DATE =
+            "Invalid date: use yyyy-MM-dd, e.g. deadline return book /by 2026-08-28";
+    public static final String MESSAGE_INVALID_NUMBER =
+            "That doesn't look like a valid task number, e.g. mark 2";
     public static final String MESSAGE_NUMBER_REQUIRED = "Please give a task number, e.g. mark 2";
-    public static final String MESSAGE_INVALID_COMMAND = "I don't know that command. Try: todo, deadline, event, list, mark, unmark, delete, bye";
+    public static final String MESSAGE_INVALID_COMMAND =
+            "I don't know that command. Try: todo, deadline, event, list, mark, unmark, delete, bye";
 
     private static final String BANNER = " _   _\n"
             + "| \\ | | _____   ____ _\n"
