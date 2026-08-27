@@ -34,6 +34,7 @@ public class Nova {
                     System.out.println("Got it. I've added this task:");
                     System.out.println(task.toString());
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                    Storage.save(tasks);
                 } else {
                     System.out.println("The description of a todo cannot be empty.");
                 }
@@ -52,6 +53,7 @@ public class Nova {
                     System.out.println("Got it. I've added this task:");
                     System.out.println(task.toString());
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                    Storage.save(tasks);
                 } else {
                     System.out.println("Please give a deadline like: deadline <description> /by <date>");
                 }
@@ -74,6 +76,7 @@ public class Nova {
                     System.out.println("Got it. I've added this task:");
                     System.out.println(task.toString());
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                    Storage.save(tasks);
                 } else {
                     System.out.println("Please give an event like: event <description> /from <start> /to <end>");
                 }
@@ -89,6 +92,7 @@ public class Nova {
                             System.out.println("Ok, I've marked this task as not done yet: ");
                         }
                         System.out.println(tasks.get(index).toString());
+                        Storage.save(tasks);
                     }
                 } else {
                     System.out.println("Please give a task number, e.g. mark 2");
@@ -101,6 +105,7 @@ public class Nova {
                         System.out.println("Noted. I've removed this task:");
                         System.out.println(removed.toString());
                         System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                        Storage.save(tasks);
                     }
                 } else {
                     System.out.println("Please give a task number, e.g. delete 2");
