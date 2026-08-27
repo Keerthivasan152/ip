@@ -1,5 +1,7 @@
 package nova;
 
+import java.util.List;
+
 /**
  * Handles all user-facing output of the chatbot.
  */
@@ -10,7 +12,8 @@ public class Ui {
     public static final String MESSAGE_INVALID_DATE = "Invalid date: use yyyy-MM-dd, e.g. deadline return book /by 2026-08-28";
     public static final String MESSAGE_INVALID_NUMBER = "That doesn't look like a valid task number, e.g. mark 2";
     public static final String MESSAGE_NUMBER_REQUIRED = "Please give a task number, e.g. mark 2";
-    public static final String MESSAGE_INVALID_COMMAND = "I don't know that command. Try: todo, deadline, event, list, mark, unmark, delete, bye";
+    public static final String MESSAGE_FIND_EMPTY = "Please give a keyword to find, e.g. find book";
+    public static final String MESSAGE_INVALID_COMMAND = "I don't know that command. Try: todo, deadline, event, find, list, mark, unmark, delete, bye";
 
     private static final String BANNER = " _   _\n"
             + "| \\ | | _____   ____ _\n"
@@ -51,6 +54,13 @@ public class Ui {
     public void showList(TaskList tasks) {
         for (int i = 0; i < tasks.size(); i++) {
             System.out.println((i + 1) + "." + tasks.get(i).toString());
+        }
+    }
+
+    public void showFindResults(List<Task> matches) {
+        System.out.println("Here are the matching tasks in your list:");
+        for (int i = 0; i < matches.size(); i++) {
+            System.out.println((i + 1) + "." + matches.get(i).toString());
         }
     }
 
