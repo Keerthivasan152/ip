@@ -2,6 +2,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -10,7 +12,7 @@ import java.util.Scanner;
  * Save format: one task per line, fields separated by " | ".
  * e.g., T | NOT_DONE | read book
  *       D | DONE | return book | 2026-08-28
- *       E | NOT_DONE | project meeting | 2026-08-28 14:00 | 2026-08-28 16:00
+ *       E | NOT_DONE | project meeting | 2026-08-28 | 2026-08-29
  */
 public class Storage {
     private static final String PATH = "data/nova.txt";
@@ -79,27 +81,31 @@ public class Storage {
             return null; // malformed line
         }
         Task task;
-        switch (parts[0]) {
-        case "T":
-            if (parts.length != 3) {
+        try {
+            switch (parts[0]) {
+            case "T":
+                if (parts.length != 3) {
+                    return null;
+                }
+                task = new Todo(parts[2]);
+                break;
+            case "D":
+                if (parts.length != 4) {
+                    return null;
+                }
+                task = new Deadline(parts[2], LocalDate.parse(parts[3]));
+                break;
+            case "E":
+                if (parts.length != 5) {
+                    return null;
+                }
+                task = new Event(parts[2], LocalDate.parse(parts[3]), LocalDate.parse(parts[4]));
+                break;
+            default:
                 return null;
             }
-            task = new Todo(parts[2]);
-            break;
-        case "D":
-            if (parts.length != 4) {
-                return null;
-            }
-            task = new Deadline(parts[2], parts[3]);
-            break;
-        case "E":
-            if (parts.length != 5) {
-                return null;
-            }
-            task = new Event(parts[2], parts[3], parts[4]);
-            break;
-        default:
-            return null;
+        } catch (DateTimeParseException e) {
+            return null; // malformed line
         }
         if (parts[1].equals("DONE")) {
             task.markDone();

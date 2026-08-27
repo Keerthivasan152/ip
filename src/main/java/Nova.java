@@ -1,3 +1,5 @@
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -47,13 +49,17 @@ public class Nova {
                         && !byParts[1].trim().isEmpty();
                 if (valid) {
                     String description = byParts[0].trim();
-                    String by = byParts[1].trim();
-                    Task task = new Deadline(description, by);
-                    tasks.add(task);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println(task.toString());
-                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                    Storage.save(tasks);
+                    LocalDate by = parseDate(byParts[1]);
+                    if (by != null) {
+                        Task task = new Deadline(description, by);
+                        tasks.add(task);
+                        System.out.println("Got it. I've added this task:");
+                        System.out.println(task.toString());
+                        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                        Storage.save(tasks);
+                    } else {
+                        System.out.println("Invalid date: use yyyy-MM-dd, e.g. deadline return book /by 2026-08-28");
+                    }
                 } else {
                     System.out.println("Please give a deadline like: deadline <description> /by <date>");
                 }
@@ -69,14 +75,18 @@ public class Nova {
                         && !toParts[1].trim().isEmpty();
                 if (valid) {
                     String description = fromParts[0].trim();
-                    String from = toParts[0].trim();
-                    String to = toParts[1].trim();
-                    Task task = new Event(description, from, to);
-                    tasks.add(task);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println(task.toString());
-                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                    Storage.save(tasks);
+                    LocalDate from = parseDate(toParts[0]);
+                    LocalDate to = parseDate(toParts[1]);
+                    if (from != null && to != null) {
+                        Task task = new Event(description, from, to);
+                        tasks.add(task);
+                        System.out.println("Got it. I've added this task:");
+                        System.out.println(task.toString());
+                        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                        Storage.save(tasks);
+                    } else {
+                        System.out.println("Invalid date: use yyyy-MM-dd, e.g. event meeting /from 2026-08-28 /to 2026-08-28");
+                    }
                 } else {
                     System.out.println("Please give an event like: event <description> /from <start> /to <end>");
                 }
@@ -113,6 +123,14 @@ public class Nova {
             } else {
                 System.out.println("I don't know that command. Try: todo, deadline, event, list, mark, unmark, delete, bye");
             }
+        }
+    }
+
+    private static LocalDate parseDate(String text) {
+        try {
+            return LocalDate.parse(text.trim());
+        } catch (DateTimeParseException e) {
+            return null;
         }
     }
 
