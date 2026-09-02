@@ -28,18 +28,28 @@ public class Ui {
             + "|_| \\_|\\___/ \\_/ \\__,_|\n";
 
     /**
+     * Prints each given message on its own line.
+     *
+     * @param messages the messages to print
+     */
+    public void showMessage(String... messages) {
+        for (String message : messages) {
+            System.out.println(message);
+        }
+    }
+
+    /**
      * Prints the chatbot banner and the greeting message.
      */
     public void greet() {
-        System.out.println(BANNER);
-        System.out.println("Hello! I'm Nova. What can I do for you?");
+        showMessage(BANNER, "Hello! I'm Nova. What can I do for you?");
     }
 
     /**
      * Prints the goodbye message.
      */
     public void showBye() {
-        System.out.println("Bye. Hope to see you again soon!");
+        showMessage("Bye. Hope to see you again soon!");
     }
 
     /**
@@ -49,9 +59,9 @@ public class Ui {
      * @param totalCount the number of tasks after adding
      */
     public void showTaskAdded(Task task, int totalCount) {
-        System.out.println("Got it. I've added this task:");
-        System.out.println(task.toString());
-        System.out.println("Now you have " + totalCount + " tasks in the list.");
+        showMessage("Got it. I've added this task:",
+                task.toString(),
+                "Now you have " + totalCount + " tasks in the list.");
     }
 
     /**
@@ -61,9 +71,9 @@ public class Ui {
      * @param totalCount the number of tasks after removing
      */
     public void showTaskDeleted(Task task, int totalCount) {
-        System.out.println("Noted. I've removed this task:");
-        System.out.println(task.toString());
-        System.out.println("Now you have " + totalCount + " tasks in the list.");
+        showMessage("Noted. I've removed this task:",
+                task.toString(),
+                "Now you have " + totalCount + " tasks in the list.");
     }
 
     /**
@@ -74,11 +84,10 @@ public class Ui {
      */
     public void showTaskStatus(Task task, boolean done) {
         if (done) {
-            System.out.println("Nice! I've marked this task as done: ");
+            showMessage("Nice! I've marked this task as done:", task.toString());
         } else {
-            System.out.println("Ok, I've marked this task as not done yet: ");
+            showMessage("Ok, I've marked this task as not done yet:", task.toString());
         }
-        System.out.println(task.toString());
     }
 
     /**
@@ -110,7 +119,7 @@ public class Ui {
      * @param message the message to print
      */
     public void showError(String message) {
-        System.out.println(message);
+        showMessage(message);
     }
 
     /**
@@ -120,6 +129,6 @@ public class Ui {
      * @param taskCount the number of tasks in the list
      */
     public void showNoTaskError(int number, int taskCount) {
-        System.out.println("There's no task at number " + number + ". You have " + taskCount + " tasks.");
+        showMessage("There's no task at number " + number + ". You have " + taskCount + " tasks.");
     }
 }
