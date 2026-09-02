@@ -38,6 +38,11 @@ public class Storage {
         this.path = path;
     }
 
+    /**
+     * Saves all tasks to the save file, one task per line.
+     *
+     * @param tasks the tasks to save
+     */
     public void save(ArrayList<Task> tasks) {
         try {
             new File(this.path).getParentFile().mkdirs();
@@ -51,6 +56,11 @@ public class Storage {
         }
     }
 
+    /**
+     * Loads all tasks saved in the save file.
+     *
+     * @return the loaded tasks, or an empty list if there is no save file yet
+     */
     public ArrayList<Task> load() {
         ArrayList<Task> tasks = new ArrayList<>();
         try {
