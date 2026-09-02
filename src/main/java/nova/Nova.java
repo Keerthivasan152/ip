@@ -145,6 +145,16 @@ public class Nova {
     }
 
     /**
+     * Returns whether the given input is the bye command.
+     *
+     * @param input the command entered by the user
+     * @return true if the command exits the chatbot
+     */
+    public boolean isExitCommand(String input) {
+        return input.split(" ", 2)[0].equals("bye");
+    }
+
+    /**
      * Runs the text-based chatbot loop until the user types "bye".
      *
      * @param args unused
@@ -160,7 +170,7 @@ public class Nova {
             if (!response.isEmpty()) {
                 ui.showMessage(response);
             }
-            if (input.split(" ", 2)[0].equals("bye")) {
+            if (nova.isExitCommand(input)) {
                 break;
             }
         }

@@ -1,5 +1,6 @@
 package nova;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
@@ -25,9 +26,16 @@ public class MainWindow extends AnchorPane {
     private final Image userImage = new Image(this.getClass().getResourceAsStream("/images/DaUser.png"));
     private final Image novaImage = new Image(this.getClass().getResourceAsStream("/images/DaNova.png"));
 
+    /**
+     * Sets up the chat window: auto-scrolls to the newest dialog, shows the
+     * greeting and focuses the input field.
+     */
     @FXML
     public void initialize() {
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
+        dialogContainer.getChildren().add(
+                DialogBox.getNovaDialog("Hello! I'm Nova. What can I do for you?", novaImage));
+        userInput.requestFocus();
     }
 
     /**
@@ -42,7 +50,7 @@ public class MainWindow extends AnchorPane {
     /**
      * Creates two dialog boxes, one echoing the user input and the other
      * containing the chatbot's reply, and appends them to the dialog container.
-     * Clears the user input after processing.
+     * Clears the user input after processing, and exits the app on "bye".
      */
     @FXML
     private void handleUserInput() {
@@ -53,5 +61,8 @@ public class MainWindow extends AnchorPane {
                 DialogBox.getNovaDialog(response, novaImage)
         );
         userInput.clear();
+        if (nova.isExitCommand(input)) {
+            Platform.exit();
+        }
     }
 }
