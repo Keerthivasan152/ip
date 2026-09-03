@@ -8,7 +8,7 @@ import java.util.Scanner;
 /**
  * The chatbot application. Processes user commands, updates the task list and
  * persists it to disk via {@link Storage}. Both the text-based interface and
- * the JavaFX GUI feed user input into {@link #getResponse(String)}.
+ * the JavaFX GUI feed user input into {@link #executeCommand(String)}.
  */
 public class Nova {
     private static final String MESSAGE_BYE = "Bye. Hope to see you again soon!";
@@ -36,7 +36,7 @@ public class Nova {
      * @param input the raw command entered by the user
      * @return the response text, or an empty string when there is nothing to show
      */
-    public String getResponse(String input) {
+    public String executeCommand(String input) {
         String[] parts = input.split(" ", 2);
         String command = parts[0];
 
@@ -166,7 +166,7 @@ public class Nova {
         ui.greet();
         while (true) {
             String input = scanner.nextLine();
-            String response = nova.getResponse(input);
+            String response = nova.executeCommand(input);
             if (!response.isEmpty()) {
                 ui.showMessage(response);
             }
