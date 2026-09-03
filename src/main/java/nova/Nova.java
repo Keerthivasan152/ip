@@ -52,18 +52,18 @@ public class Nova {
                 Task task = new Todo(parts[1].trim());
                 taskList.add(task);
                 storage.save(taskList.getAll());
-                return addedMessage(task);
+                return formatAddedMessage(task);
             }
             return Ui.MESSAGE_TODO_EMPTY;
         }
         if (command.equals("deadline")) {
             String rest = parts.length == 2 ? parts[1] : "";
             String[] byParts = rest.split("/by", 2);
-            boolean valid = parts.length == 2
+            boolean isValidFormat = parts.length == 2
                     && byParts.length == 2
                     && !byParts[0].trim().isEmpty()
                     && !byParts[1].trim().isEmpty();
-            if (!valid) {
+            if (!isValidFormat) {
                 return Ui.MESSAGE_INVALID_DEADLINE;
             }
             LocalDate by = parseDate(byParts[1]);
@@ -73,19 +73,19 @@ public class Nova {
             Task task = new Deadline(byParts[0].trim(), by);
             taskList.add(task);
             storage.save(taskList.getAll());
-            return addedMessage(task);
+            return formatAddedMessage(task);
         }
         if (command.equals("event")) {
             String rest = parts.length == 2 ? parts[1] : "";
             String[] fromParts = rest.split("/from", 2);
             String[] toParts = fromParts.length == 2 ? fromParts[1].split("/to", 2) : new String[0];
-            boolean valid = parts.length == 2
+            boolean isValidFormat = parts.length == 2
                     && fromParts.length == 2
                     && toParts.length == 2
                     && !fromParts[0].trim().isEmpty()
                     && !toParts[0].trim().isEmpty()
                     && !toParts[1].trim().isEmpty();
-            if (!valid) {
+            if (!isValidFormat) {
                 return Ui.MESSAGE_INVALID_EVENT;
             }
             LocalDate from = parseDate(toParts[0]);
@@ -96,13 +96,13 @@ public class Nova {
             Task task = new Event(fromParts[0].trim(), from, to);
             taskList.add(task);
             storage.save(taskList.getAll());
-            return addedMessage(task);
+            return formatAddedMessage(task);
         }
         if (command.equals("mark") || command.equals("unmark")) {
             if (parts.length != 2) {
                 return Ui.MESSAGE_NUMBER_REQUIRED;
             }
-            int index = getTaskIndex(parts[1], taskList.size());
+            int index = parseTaskIndex(parts[1], taskList.size());
             if (index < 0) {
                 return taskNumberError(parts[1], taskList.size());
             }
@@ -119,7 +119,7 @@ public class Nova {
             if (parts.length != 2) {
                 return Ui.MESSAGE_NUMBER_REQUIRED;
             }
-            int index = getTaskIndex(parts[1], taskList.size());
+            int index = parseTaskIndex(parts[1], taskList.size());
             if (index < 0) {
                 return taskNumberError(parts[1], taskList.size());
             }
@@ -176,7 +176,7 @@ public class Nova {
         }
     }
 
-    private String addedMessage(Task task) {
+    private String formatAddedMessage(Task task) {
         return MESSAGE_ADDED + "\n" + task + "\n" + taskCountMessage(taskList.size());
     }
 
@@ -213,7 +213,7 @@ public class Nova {
      * @return the zero-based index, or -1 if the argument is not a valid number
      *         or is out of range
      */
-    private static int getTaskIndex(String argument, int taskCount) {
+    private static int parseTaskIndex(String argument, int taskCount) {
         try {
             int number = Integer.parseInt(argument);
             if (number < 1 || number > taskCount) {
