@@ -77,6 +77,9 @@ public class Nova {
             }
             return Ui.MESSAGE_FIND_EMPTY;
         }
+        if (command.equals("archive")) {
+            return handleArchive();
+        }
         return Ui.MESSAGE_INVALID_COMMAND;
     }
 
@@ -204,6 +207,24 @@ public class Nova {
         }
         storage.save(taskList.getAll());
         return (command.equals("mark") ? MESSAGE_MARKED : MESSAGE_UNMARKED) + "\n" + task;
+    }
+
+    /**
+     * Handles the archive command, moving completed tasks to the archive file.
+     *
+     * @return the response text for the command
+     */
+    private String handleArchive() {
+        ArrayList<Task> archived = taskList.removeCompletedTasks();
+        if (archived.isEmpty()) {
+            return Ui.MESSAGE_ARCHIVE_EMPTY;
+        }
+        storage.appendToArchive(archived);
+        storage.save(taskList.getAll());
+        String body = IntStream.range(0, archived.size())
+                .mapToObj(i -> (i + 1) + "." + archived.get(i))
+                .collect(Collectors.joining("\n"));
+        return Ui.MESSAGE_ARCHIVE_HEADER + "\n" + body + "\n" + taskCountMessage(taskList.size());
     }
 
     /** Formats all tasks using their one-based task numbers. */

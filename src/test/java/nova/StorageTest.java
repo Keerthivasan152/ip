@@ -35,6 +35,20 @@ public class StorageTest {
     }
 
     @Test
+    public void appendToArchive_writesTasksInSaveFormat() throws IOException {
+        Path dir = tempDir.resolve("data");
+        Storage storage = new Storage(dir.resolve("nova.txt").toString(),
+                dir.resolve("nova-archive.txt").toString());
+        Todo done = new Todo("old task");
+        done.markDone();
+        ArrayList<Task> tasks = new ArrayList<>();
+        tasks.add(done);
+        storage.appendToArchive(tasks);
+        String content = Files.readString(dir.resolve("nova-archive.txt"));
+        assertEquals("T | DONE | old task" + System.lineSeparator(), content);
+    }
+
+    @Test
     public void load_missingFile_returnsEmptyList() {
         Storage storage = new Storage(tempDir.resolve("no-such-dir/nova.txt").toString());
         assertEquals(0, storage.load().size());

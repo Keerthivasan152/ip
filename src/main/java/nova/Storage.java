@@ -18,15 +18,17 @@ import java.util.Scanner;
  */
 public class Storage {
     private static final String DEFAULT_PATH = "data/nova.txt";
+    private static final String DEFAULT_ARCHIVE_PATH = "data/nova-archive.txt";
     private static final String SEPARATOR = " | ";
 
     private final String path;
+    private final String archivePath;
 
     /**
      * Creates a storage that saves to and loads from the default file.
      */
     public Storage() {
-        this.path = DEFAULT_PATH;
+        this(DEFAULT_PATH, DEFAULT_ARCHIVE_PATH);
     }
 
     /**
@@ -35,7 +37,18 @@ public class Storage {
      * @param path the save file path
      */
     public Storage(String path) {
+        this(path, DEFAULT_ARCHIVE_PATH);
+    }
+
+    /**
+     * Creates a storage that uses the given files for tasks and the archive.
+     *
+     * @param path the save file path
+     * @param archivePath the archive file path
+     */
+    public Storage(String path, String archivePath) {
         this.path = path;
+        this.archivePath = archivePath;
     }
 
     /**
@@ -54,6 +67,25 @@ public class Storage {
             writer.close();
         } catch (IOException e) {
             System.out.println("Could not save tasks: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Appends the given tasks to the archive file, keeping a record of them.
+     *
+     * @param tasks the tasks to archive
+     */
+    public void appendToArchive(ArrayList<Task> tasks) {
+        assert tasks != null : "Tasks to archive must not be null";
+        try {
+            new File(this.archivePath).getParentFile().mkdirs();
+            FileWriter writer = new FileWriter(this.archivePath, true);
+            for (Task task : tasks) {
+                writer.write(toFileLine(task) + System.lineSeparator());
+            }
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Could not archive tasks: " + e.getMessage());
         }
     }
 

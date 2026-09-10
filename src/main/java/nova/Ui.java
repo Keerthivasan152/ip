@@ -17,7 +17,10 @@ public class Ui {
     public static final String MESSAGE_FIND_EMPTY =
             "Please give a keyword to find, e.g. find book";
     public static final String MESSAGE_INVALID_COMMAND =
-            "I don't know that command. Try: todo, deadline, event, find, list, mark, unmark, delete, bye";
+            "I don't know that command. Try: todo, deadline, event, find, list, mark, unmark, delete, archive,"
+                    + " bye";
+    public static final String MESSAGE_ARCHIVE_EMPTY = "There are no completed tasks to archive.";
+    public static final String MESSAGE_ARCHIVE_HEADER = "I've archived these completed tasks:";
 
     private static final String BANNER = " _   _\n"
             + "| \\ | | _____   ____ _\n"

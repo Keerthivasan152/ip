@@ -1,6 +1,7 @@
 package nova;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 /**
  * Wraps the in-memory list of tasks and the operations on it.
@@ -72,5 +73,18 @@ public class TaskList {
      */
     public ArrayList<Task> getAll() {
         return this.tasks;
+    }
+
+    /**
+     * Removes all completed tasks from the list and returns them.
+     *
+     * @return the removed completed tasks, in their original order
+     */
+    public ArrayList<Task> removeCompletedTasks() {
+        ArrayList<Task> completed = tasks.stream()
+                .filter(Task::isDone)
+                .collect(Collectors.toCollection(ArrayList::new));
+        tasks.removeIf(Task::isDone);
+        return completed;
     }
 }
