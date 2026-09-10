@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The chatbot application. Processes user commands, updates the task list and
@@ -67,14 +69,10 @@ public class Nova {
         }
         if (command.equals("find")) {
             if (parts.length == 2 && !parts[1].trim().isEmpty()) {
-                String keyword = parts[1].trim();
-                ArrayList<Task> matches = new ArrayList<>();
-                for (int i = 0; i < taskList.size(); i++) {
-                    Task task = taskList.get(i);
-                    if (task.getDescription().toLowerCase().contains(keyword.toLowerCase())) {
-                        matches.add(task);
-                    }
-                }
+                String keyword = parts[1].trim().toLowerCase();
+                ArrayList<Task> matches = taskList.getAll().stream()
+                        .filter(task -> task.getDescription().toLowerCase().contains(keyword))
+                        .collect(Collectors.toCollection(ArrayList::new));
                 return formatFindResults(matches);
             }
             return Ui.MESSAGE_FIND_EMPTY;
@@ -210,23 +208,17 @@ public class Nova {
 
     /** Formats all tasks using their one-based task numbers. */
     private String formatTaskList() {
-        StringBuilder response = new StringBuilder();
-        for (int i = 0; i < taskList.size(); i++) {
-            if (i > 0) {
-                response.append('\n');
-            }
-            response.append(i + 1).append(".").append(taskList.get(i));
-        }
-        return response.toString();
+        return IntStream.range(0, taskList.size())
+                .mapToObj(i -> (i + 1) + "." + taskList.get(i))
+                .collect(Collectors.joining("\n"));
     }
 
     /** Formats the matching tasks of a find command, numbered from 1. */
     private String formatFindResults(ArrayList<Task> matches) {
-        StringBuilder response = new StringBuilder(MESSAGE_FIND_HEADER);
-        for (int i = 0; i < matches.size(); i++) {
-            response.append('\n').append(i + 1).append(".").append(matches.get(i));
-        }
-        return response.toString();
+        String body = IntStream.range(0, matches.size())
+                .mapToObj(i -> (i + 1) + "." + matches.get(i))
+                .collect(Collectors.joining("\n"));
+        return body.isEmpty() ? MESSAGE_FIND_HEADER : MESSAGE_FIND_HEADER + "\n" + body;
     }
 
     /**
