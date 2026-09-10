@@ -57,75 +57,13 @@ public class Nova {
             return Ui.MESSAGE_TODO_EMPTY;
         }
         if (command.equals("deadline")) {
-            String rest = parts.length == 2 ? parts[1] : "";
-            String[] byParts = rest.split("/by", 2);
-            boolean isValidFormat = parts.length == 2
-                    && byParts.length == 2
-                    && !byParts[0].trim().isEmpty()
-                    && !byParts[1].trim().isEmpty();
-            if (!isValidFormat) {
-                return Ui.MESSAGE_INVALID_DEADLINE;
-            }
-            LocalDate by = parseDate(byParts[1]);
-            if (by == null) {
-                return Ui.MESSAGE_INVALID_DATE;
-            }
-            Task task = new Deadline(byParts[0].trim(), by);
-            taskList.add(task);
-            storage.save(taskList.getAll());
-            return formatAddedMessage(task);
+            return handleDeadline(parts);
         }
         if (command.equals("event")) {
-            String rest = parts.length == 2 ? parts[1] : "";
-            String[] fromParts = rest.split("/from", 2);
-            String[] toParts = fromParts.length == 2 ? fromParts[1].split("/to", 2) : new String[0];
-            boolean isValidFormat = parts.length == 2
-                    && fromParts.length == 2
-                    && toParts.length == 2
-                    && !fromParts[0].trim().isEmpty()
-                    && !toParts[0].trim().isEmpty()
-                    && !toParts[1].trim().isEmpty();
-            if (!isValidFormat) {
-                return Ui.MESSAGE_INVALID_EVENT;
-            }
-            LocalDate from = parseDate(toParts[0]);
-            LocalDate to = parseDate(toParts[1]);
-            if (from == null || to == null) {
-                return Ui.MESSAGE_INVALID_DATE;
-            }
-            Task task = new Event(fromParts[0].trim(), from, to);
-            taskList.add(task);
-            storage.save(taskList.getAll());
-            return formatAddedMessage(task);
+            return handleEvent(parts);
         }
-        if (command.equals("mark") || command.equals("unmark")) {
-            if (parts.length != 2) {
-                return Ui.MESSAGE_NUMBER_REQUIRED;
-            }
-            int index = parseTaskIndex(parts[1], taskList.size());
-            if (index < 0) {
-                return taskNumberError(parts[1], taskList.size());
-            }
-            Task task = taskList.get(index);
-            if (command.equals("mark")) {
-                task.markDone();
-            } else {
-                task.markUndone();
-            }
-            storage.save(taskList.getAll());
-            return (command.equals("mark") ? MESSAGE_MARKED : MESSAGE_UNMARKED) + "\n" + task;
-        }
-        if (command.equals("delete")) {
-            if (parts.length != 2) {
-                return Ui.MESSAGE_NUMBER_REQUIRED;
-            }
-            int index = parseTaskIndex(parts[1], taskList.size());
-            if (index < 0) {
-                return taskNumberError(parts[1], taskList.size());
-            }
-            Task removed = taskList.remove(index);
-            storage.save(taskList.getAll());
-            return MESSAGE_REMOVED + "\n" + removed + "\n" + taskCountMessage(taskList.size());
+        if (command.equals("mark") || command.equals("unmark") || command.equals("delete")) {
+            return handleIndexedCommand(command, parts);
         }
         if (command.equals("find")) {
             if (parts.length == 2 && !parts[1].trim().isEmpty()) {
@@ -182,6 +120,92 @@ public class Nova {
 
     private String taskCountMessage(int count) {
         return MESSAGE_TASK_COUNT_PREFIX + count + " tasks in the list.";
+    }
+
+    /**
+     * Handles the deadline command, validating its description and date first.
+     *
+     * @param parts the split user input
+     * @return the response text for the command
+     */
+    private String handleDeadline(String[] parts) {
+        String rest = parts.length == 2 ? parts[1] : "";
+        String[] byParts = rest.split("/by", 2);
+        boolean isValidFormat = parts.length == 2
+                && byParts.length == 2
+                && !byParts[0].trim().isEmpty()
+                && !byParts[1].trim().isEmpty();
+        if (!isValidFormat) {
+            return Ui.MESSAGE_INVALID_DEADLINE;
+        }
+        LocalDate by = parseDate(byParts[1]);
+        if (by == null) {
+            return Ui.MESSAGE_INVALID_DATE;
+        }
+        Task task = new Deadline(byParts[0].trim(), by);
+        taskList.add(task);
+        storage.save(taskList.getAll());
+        return formatAddedMessage(task);
+    }
+
+    /**
+     * Handles the event command, validating its description and dates first.
+     *
+     * @param parts the split user input
+     * @return the response text for the command
+     */
+    private String handleEvent(String[] parts) {
+        String rest = parts.length == 2 ? parts[1] : "";
+        String[] fromParts = rest.split("/from", 2);
+        String[] toParts = fromParts.length == 2 ? fromParts[1].split("/to", 2) : new String[0];
+        boolean isValidFormat = parts.length == 2
+                && fromParts.length == 2
+                && toParts.length == 2
+                && !fromParts[0].trim().isEmpty()
+                && !toParts[0].trim().isEmpty()
+                && !toParts[1].trim().isEmpty();
+        if (!isValidFormat) {
+            return Ui.MESSAGE_INVALID_EVENT;
+        }
+        LocalDate from = parseDate(toParts[0]);
+        LocalDate to = parseDate(toParts[1]);
+        if (from == null || to == null) {
+            return Ui.MESSAGE_INVALID_DATE;
+        }
+        Task task = new Event(fromParts[0].trim(), from, to);
+        taskList.add(task);
+        storage.save(taskList.getAll());
+        return formatAddedMessage(task);
+    }
+
+    /**
+     * Handles the mark, unmark and delete commands, which all act on a task number.
+     *
+     * @param command one of mark, unmark or delete
+     * @param parts the split user input
+     * @return the response text for the command
+     */
+    private String handleIndexedCommand(String command, String[] parts) {
+        if (parts.length != 2) {
+            return Ui.MESSAGE_NUMBER_REQUIRED;
+        }
+        int index = parseTaskIndex(parts[1], taskList.size());
+        if (index < 0) {
+            return taskNumberError(parts[1], taskList.size());
+        }
+        if (command.equals("delete")) {
+            Task removed = taskList.remove(index);
+            storage.save(taskList.getAll());
+            return MESSAGE_REMOVED + "\n" + removed + "\n" + taskCountMessage(taskList.size());
+        }
+        Task task = taskList.get(index);
+        if (command.equals("mark")) {
+            task.markDone();
+        } else {
+            task.markUndone();
+        }
+        storage.save(taskList.getAll());
+        return (command.equals("mark") ? MESSAGE_MARKED : MESSAGE_UNMARKED) + "\n" + task;
     }
 
     /** Formats all tasks using their one-based task numbers. */
