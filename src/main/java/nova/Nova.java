@@ -214,6 +214,7 @@ public class Nova {
      *         or is out of range
      */
     private static int parseTaskIndex(String argument, int taskCount) {
+        assert taskCount >= 0 : "Task count must not be negative";
         try {
             int number = Integer.parseInt(argument);
             if (number < 1 || number > taskCount) {

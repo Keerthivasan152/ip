@@ -44,6 +44,7 @@ public class Storage {
      * @param tasks the tasks to save
      */
     public void save(ArrayList<Task> tasks) {
+        assert tasks != null : "Task list to save must not be null";
         try {
             new File(this.path).getParentFile().mkdirs();
             FileWriter writer = new FileWriter(this.path);
@@ -93,6 +94,7 @@ public class Storage {
     }
 
     private static Task parseLine(String line) {
+        assert line != null : "Save file line must not be null";
         String[] parts = line.split(" \\| ");
         if (parts.length < 2) {
             return null; // malformed line
