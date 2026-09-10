@@ -30,6 +30,7 @@ public class TaskList {
      * @param task the task to add
      */
     public void add(Task task) {
+        assert task != null : "Added task must not be null";
         this.tasks.add(task);
     }
 
@@ -40,6 +41,7 @@ public class TaskList {
      * @return the removed task
      */
     public Task remove(int index) {
+        assert index >= 0 && index < tasks.size() : "Remove index must be within the list";
         return this.tasks.remove(index);
     }
 
@@ -50,6 +52,7 @@ public class TaskList {
      * @return the task at the index
      */
     public Task get(int index) {
+        assert index >= 0 && index < tasks.size() : "Access index must be within the list";
         return this.tasks.get(index);
     }
 
