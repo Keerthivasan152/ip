@@ -34,6 +34,10 @@ public class Ui {
                     + " bye";
     public static final String MESSAGE_ARCHIVE_EMPTY = "There are no completed tasks to archive.";
     public static final String MESSAGE_ARCHIVE_HEADER = "I've archived these completed tasks:";
+    public static final String MESSAGE_LIST_EMPTY =
+            "Your list is empty. Add one with todo, deadline or event.";
+    public static final String MESSAGE_COMMAND_HINT =
+            "Try: todo read book, deadline return book /by 2026-09-20, list, find book, bye";
 
     private static final String BANNER = " _   _\n"
             + "| \\ | | _____   ____ _\n"

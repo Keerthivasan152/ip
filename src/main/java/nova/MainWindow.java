@@ -27,8 +27,8 @@ public class MainWindow extends AnchorPane {
     private final Image novaImage = new Image(this.getClass().getResourceAsStream("/images/DaNova.png"));
 
     /**
-     * Sets up the chat window: auto-scrolls to the newest dialog, shows the
-     * greeting and focuses the input field.
+     * Sets up the chat window: auto-scrolls to the newest dialog and focuses the
+     * input field.
      */
     @FXML
     public void initialize() {
@@ -37,17 +37,18 @@ public class MainWindow extends AnchorPane {
     }
 
     /**
-     * Injects the chatbot instance used to generate responses.
+     * Injects the chatbot instance used to generate responses, and shows the
+     * greeting once the chatbot has loaded its tasks.
      *
      * @param nova the chatbot
      */
     public void setNova(Nova nova) {
         this.nova = nova;
-        String greeting = Nova.MESSAGE_GREETING;
+        String greeting = Nova.MESSAGE_GREETING + "\n" + Ui.MESSAGE_COMMAND_HINT;
         if (!nova.getStartupWarning().isEmpty()) {
             greeting = greeting + "\n" + nova.getStartupWarning();
         }
-        dialogContainer.getChildren().add(DialogBox.getNovaDialog(greeting, novaImage));
+        addDialog(DialogBox.getNovaDialog(CommandResult.ok(greeting), novaImage));
     }
 
     /**
@@ -58,14 +59,18 @@ public class MainWindow extends AnchorPane {
     @FXML
     private void handleUserInput() {
         String input = userInput.getText();
-        String response = nova.executeCommand(input);
-        dialogContainer.getChildren().addAll(
-                DialogBox.getUserDialog(input, userImage),
-                DialogBox.getNovaDialog(response, novaImage)
-        );
+        CommandResult result = nova.executeCommand(input);
+        addDialog(DialogBox.getUserDialog(input, userImage));
+        addDialog(DialogBox.getNovaDialog(result, novaImage));
         userInput.clear();
         if (nova.isExitCommand(input)) {
             Platform.exit();
         }
+    }
+
+    /** Adds a dialog box that keeps its text within the width of the chat area. */
+    private void addDialog(DialogBox dialogBox) {
+        dialogBox.limitBubbleWidth(dialogContainer.widthProperty());
+        dialogContainer.getChildren().add(dialogBox);
     }
 }

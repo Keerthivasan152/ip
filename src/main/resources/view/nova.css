@@ -1,0 +1,71 @@
+/* Nova's chat styling: one accent colour, readable bubbles, no wasted space. */
+.root {
+    -fx-font-family: "Segoe UI", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #f6f7f9;
+}
+
+.scroll-pane,
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.dialog-box {
+    -fx-padding: 4 10 4 10;
+}
+
+.bubble {
+    -fx-padding: 8 12 8 12;
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-border-color: #e3e7ee;
+    -fx-border-radius: 14;
+    -fx-text-fill: #1b2430;
+}
+
+.nova .bubble {
+    -fx-background-radius: 14 14 14 4;
+    -fx-border-radius: 14 14 14 4;
+}
+
+.user .bubble {
+    -fx-background-color: #3d5afe;
+    -fx-border-color: #3d5afe;
+    -fx-text-fill: white;
+    -fx-background-radius: 14 14 4 14;
+    -fx-border-radius: 14 14 4 14;
+}
+
+.error .bubble {
+    -fx-graphic-text-gap: 8;
+    -fx-background-color: #fdf1f1;
+    -fx-border-color: #f0c2c2;
+    -fx-text-fill: #8e2424;
+}
+
+.badge {
+    -fx-background-color: #d34040;
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-min-width: 15px;
+    -fx-min-height: 15px;
+    -fx-alignment: center;
+    -fx-padding: 0;
+}
+
+.text-field {
+    -fx-background-radius: 8;
+    -fx-border-color: #c9ced6;
+    -fx-border-radius: 8;
+    -fx-background-color: white;
+    -fx-padding: 6 9 6 9;
+}
+
+.button {
+    -fx-background-color: #3d5afe;
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
