@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -20,9 +23,11 @@ public class Storage {
     private static final String DEFAULT_PATH = "data/nova.txt";
     private static final String DEFAULT_ARCHIVE_PATH = "data/nova-archive.txt";
     private static final String SEPARATOR = " | ";
+    private static final String TEMP_SUFFIX = ".tmp";
 
     private final String path;
     private final String archivePath;
+    private String errorMessage = "";
 
     /**
      * Creates a storage that saves to and loads from the default file.
@@ -47,26 +52,53 @@ public class Storage {
      * @param archivePath the archive file path
      */
     public Storage(String path, String archivePath) {
+        assert path != null && archivePath != null : "Storage paths must not be null";
         this.path = path;
         this.archivePath = archivePath;
     }
 
     /**
-     * Saves all tasks to the save file, one task per line.
+     * Returns the problem found by the most recent save or load, and clears it,
+     * so that each problem is reported to the user once.
+     *
+     * @return the error message, or an empty string when there was no problem
+     */
+    public String consumeErrorMessage() {
+        String message = this.errorMessage;
+        this.errorMessage = "";
+        return message;
+    }
+
+    /**
+     * Saves all tasks to the save file, one task per line. The file is written
+     * to a temporary file first, so a failure part way through cannot leave a
+     * half-written save file behind.
      *
      * @param tasks the tasks to save
      */
     public void save(ArrayList<Task> tasks) {
         assert tasks != null : "Task list to save must not be null";
-        try {
-            new File(this.path).getParentFile().mkdirs();
-            FileWriter writer = new FileWriter(this.path);
+        Path target = Path.of(this.path);
+        Path folder = target.getParent();
+        if (folder != null && !Files.isDirectory(folder)) {
+            if (!folder.toFile().mkdirs()) {
+                this.errorMessage = "Could not create the folder " + folder + ", so tasks were not saved.";
+                return;
+            }
+        }
+        Path temp = Path.of(this.path + TEMP_SUFFIX);
+        try (FileWriter writer = new FileWriter(temp.toFile())) {
             for (Task task : tasks) {
                 writer.write(toFileLine(task) + System.lineSeparator());
             }
-            writer.close();
         } catch (IOException e) {
-            System.out.println("Could not save tasks: " + e.getMessage());
+            this.errorMessage = "Could not save tasks to " + this.path + ": " + e.getMessage() + ".";
+            return;
+        }
+        try {
+            Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            this.errorMessage = "Could not save tasks to " + this.path + ": " + e.getMessage() + ".";
         }
     }
 
@@ -77,36 +109,57 @@ public class Storage {
      */
     public void appendToArchive(ArrayList<Task> tasks) {
         assert tasks != null : "Tasks to archive must not be null";
-        try {
-            new File(this.archivePath).getParentFile().mkdirs();
-            FileWriter writer = new FileWriter(this.archivePath, true);
+        File target = new File(this.archivePath);
+        File folder = target.getParentFile();
+        if (folder != null && !folder.isDirectory() && !folder.mkdirs()) {
+            this.errorMessage = "Could not create the folder " + folder + ", so tasks were not archived.";
+            return;
+        }
+        try (FileWriter writer = new FileWriter(target, true)) {
             for (Task task : tasks) {
                 writer.write(toFileLine(task) + System.lineSeparator());
             }
-            writer.close();
         } catch (IOException e) {
-            System.out.println("Could not archive tasks: " + e.getMessage());
+            this.errorMessage = "Could not archive tasks to " + this.archivePath + ": " + e.getMessage() + ".";
         }
     }
 
     /**
-     * Loads all tasks saved in the save file.
+     * Loads all tasks saved in the save file. A missing file simply means there
+     * is nothing saved yet, but a file that cannot be read or that holds lines
+     * that do not follow the save format is reported through
+     * {@link #consumeErrorMessage()}.
      *
-     * @return the loaded tasks, or an empty list if there is no save file yet
+     * @return the tasks that could be loaded, in file order
      */
     public ArrayList<Task> load() {
         ArrayList<Task> tasks = new ArrayList<>();
-        try {
-            Scanner scanner = new Scanner(new File(this.path));
+        File file = new File(this.path);
+        if (!file.exists()) {
+            return tasks;
+        }
+        int skippedLines = 0;
+        try (Scanner scanner = new Scanner(file)) {
             while (scanner.hasNextLine()) {
-                Task task = parseLine(scanner.nextLine());
-                if (task != null) {
+                String line = scanner.nextLine();
+                if (line.isBlank()) {
+                    continue;
+                }
+                Task task = parseLine(line);
+                if (task == null) {
+                    skippedLines++;
+                } else {
                     tasks.add(task);
                 }
             }
-            scanner.close();
         } catch (FileNotFoundException e) {
-            // no save file yet; start with an empty list
+            this.errorMessage = "Could not read " + this.path + ": " + e.getMessage()
+                    + ". Starting with an empty list.";
+            return tasks;
+        }
+        if (skippedLines > 0) {
+            this.errorMessage = "Skipped " + skippedLines + " unreadable line(s) in " + this.path
+                    + "; those tasks are not shown.";
         }
         return tasks;
     }
@@ -114,13 +167,14 @@ public class Storage {
     private String toFileLine(Task task) {
         String status = task.isDone() ? "DONE" : "NOT_DONE";
         if (task instanceof Deadline) {
-            Deadline d = (Deadline) task;
-            return "D" + SEPARATOR + status + SEPARATOR + d.getDescription() + SEPARATOR + d.getBy();
+            Deadline deadline = (Deadline) task;
+            return "D" + SEPARATOR + status + SEPARATOR + deadline.getDescription()
+                    + SEPARATOR + deadline.getBy();
         }
         if (task instanceof Event) {
-            Event e = (Event) task;
-            return "E" + SEPARATOR + status + SEPARATOR + e.getDescription()
-                    + SEPARATOR + e.getFrom() + SEPARATOR + e.getTo();
+            Event event = (Event) task;
+            return "E" + SEPARATOR + status + SEPARATOR + event.getDescription()
+                    + SEPARATOR + event.getFrom() + SEPARATOR + event.getTo();
         }
         return "T" + SEPARATOR + status + SEPARATOR + task.getDescription();
     }
