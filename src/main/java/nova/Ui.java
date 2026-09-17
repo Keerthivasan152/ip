@@ -5,37 +5,38 @@ package nova;
  * the messages that both interfaces show to the user.
  */
 public class Ui {
-    public static final String MESSAGE_TODO_EMPTY = "The description of a todo cannot be empty.";
+    public static final String MESSAGE_TODO_EMPTY =
+            "A todo needs a description, e.g. todo read book";
     public static final String MESSAGE_INVALID_DEADLINE =
-            "Please give a deadline like: deadline <description> /by <date>";
+            "A deadline needs a description and a /by date, e.g. deadline return book /by 2026-08-28";
     public static final String MESSAGE_DUPLICATE_DEADLINE_DATE =
-            "Please give the /by date once, like: deadline return book /by 2026-08-28";
+            "One /by date is enough, e.g. deadline return book /by 2026-08-28";
     public static final String MESSAGE_INVALID_EVENT =
-            "Please give an event like: event <description> /from <start> /to <end>";
+            "An event needs a description with /from and /to, e.g. event meeting /from 2026-08-28 /to 2026-08-29";
     public static final String MESSAGE_DUPLICATE_EVENT_DATE =
-            "Please give /from and /to once each, like: event meeting /from 2026-08-28 /to 2026-08-29";
+            "One /from and one /to is enough, e.g. event meeting /from 2026-08-28 /to 2026-08-29";
     public static final String MESSAGE_INVALID_EVENT_RANGE =
-            "The event ends before it starts. The /from date must be earlier than the /to date.";
+            "That event ends before it starts. The /from date must come before the /to date.";
     public static final String MESSAGE_INVALID_DATE =
-            "Invalid date: use yyyy-MM-dd, e.g. deadline return book /by 2026-08-28";
+            "That date doesn't look right. Use yyyy-MM-dd, e.g. deadline return book /by 2026-08-28";
     public static final String MESSAGE_INVALID_NUMBER =
-            "That doesn't look like a valid task number, e.g. mark 2";
-    public static final String MESSAGE_NUMBER_REQUIRED = "Please give a task number, e.g. mark 2";
+            "That isn't a task number. Try: mark 2";
+    public static final String MESSAGE_NUMBER_REQUIRED = "Which task? Add a number, e.g. mark 2";
     public static final String MESSAGE_ONE_TASK_NUMBER =
-            "Please give one task number only, e.g. mark 2";
+            "One task number at a time, e.g. mark 2";
     public static final String MESSAGE_FIND_EMPTY =
-            "Please give a keyword to find, e.g. find book";
+            "What should I look for? Try: find book";
     public static final String MESSAGE_EMPTY_INPUT =
-            "Please type a command, e.g. list";
+            "I didn't catch that. Try: help";
     public static final String MESSAGE_EXTRA_ARGUMENTS =
-            "The %s command does not take any arguments.";
+            "The %s command takes no arguments.";
     public static final String MESSAGE_INVALID_COMMAND =
-            "I don't know that command. Try: todo, deadline, event, find, list, mark, unmark, delete, archive,"
-                    + " help, bye";
+            "I don't know that one. I can do: todo, deadline, event, find, list, mark, unmark, delete,"
+                    + " archive, help, bye";
     public static final String MESSAGE_LIST_EMPTY =
-            "Your list is empty. Add one with todo, deadline or event.";
+            "Nothing on the list yet. Add one with todo, deadline or event.";
     public static final String MESSAGE_COMMAND_HINT =
-            "Try: todo read book, deadline return book /by 2026-09-20, list, find book, bye";
+            "Type help for the full list, or try: todo read book, deadline return book /by 2026-09-20, list";
     public static final String MESSAGE_HELP =
             "Here is everything I can do:\n"
                     + "  todo <description>                        add a task\n"
@@ -50,8 +51,9 @@ public class Ui {
                     + "  bye                                       save and close\n"
                     + "Dates look like 2026-09-20. The up and down arrow keys recall what you typed,"
                     + " Tab completes a command, and Ctrl+D switches between the dark and light themes.";
-    public static final String MESSAGE_ARCHIVE_EMPTY = "There are no completed tasks to archive.";
-    public static final String MESSAGE_ARCHIVE_HEADER = "I've archived these completed tasks:";
+    public static final String MESSAGE_ARCHIVE_EMPTY = "Nothing completed to archive yet.";
+    public static final String MESSAGE_ARCHIVE_HEADER =
+            "Tidied up. These completed tasks are now in the archive:";
 
     private static final String BANNER = " _   _\n"
             + "| \\ | | _____   ____ _\n"
