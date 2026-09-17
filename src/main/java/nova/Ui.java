@@ -31,7 +31,25 @@ public class Ui {
             "The %s command does not take any arguments.";
     public static final String MESSAGE_INVALID_COMMAND =
             "I don't know that command. Try: todo, deadline, event, find, list, mark, unmark, delete, archive,"
-                    + " bye";
+                    + " help, bye";
+    public static final String MESSAGE_LIST_EMPTY =
+            "Your list is empty. Add one with todo, deadline or event.";
+    public static final String MESSAGE_COMMAND_HINT =
+            "Try: todo read book, deadline return book /by 2026-09-20, list, find book, bye";
+    public static final String MESSAGE_HELP =
+            "Here is everything I can do:\n"
+                    + "  todo <description>                        add a task\n"
+                    + "  deadline <description> /by <date>         add a task with a deadline\n"
+                    + "  event <description> /from <date> /to <date>\n"
+                    + "                                            add an event\n"
+                    + "  list                                      show every task\n"
+                    + "  find <keyword>                            show the matching tasks\n"
+                    + "  mark <number> / unmark <number>           change a task's status\n"
+                    + "  delete <number>                           remove a task\n"
+                    + "  archive                                   move done tasks to the archive\n"
+                    + "  bye                                       save and close\n"
+                    + "Dates look like 2026-09-20. The up and down arrow keys recall what you typed,"
+                    + " Tab completes a command, and Ctrl+D switches between the dark and light themes.";
     public static final String MESSAGE_ARCHIVE_EMPTY = "There are no completed tasks to archive.";
     public static final String MESSAGE_ARCHIVE_HEADER = "I've archived these completed tasks:";
 

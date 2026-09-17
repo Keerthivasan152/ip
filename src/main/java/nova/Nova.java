@@ -3,6 +3,7 @@ package nova;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -28,6 +29,10 @@ public class Nova {
     private static final String PARAMETER_FROM = "/from";
     private static final String PARAMETER_TO = "/to";
 
+    /** The command words Nova understands, in the order the help text lists them. */
+    private static final List<String> COMMAND_WORDS = List.of("todo", "deadline", "event", "list", "find",
+            "mark", "unmark", "delete", "archive", "help", "bye");
+
     private final Storage storage;
     private final TaskList taskList;
     private final String startupWarning;
@@ -52,6 +57,15 @@ public class Nova {
     }
 
     /**
+     * Returns the command words Nova understands, so the GUI can complete them.
+     *
+     * @return the command words
+     */
+    public static List<String> getCommandWords() {
+        return COMMAND_WORDS;
+    }
+
+    /**
      * Returns any warning about the save file that was found while starting up.
      *
      * @return the warning text, or an empty string when the save file read cleanly
@@ -61,16 +75,34 @@ public class Nova {
     }
 
     /**
-     * Processes one user command and returns the text of the chatbot's response.
+     * Returns how many tasks the list holds.
+     *
+     * @return the number of tasks
+     */
+    public int getTaskCount() {
+        return this.taskList.size();
+    }
+
+    /**
+     * Returns how many tasks are done, which the GUI shows next to the total.
+     *
+     * @return the number of completed tasks
+     */
+    public int getDoneCount() {
+        return (int) this.taskList.getAll().stream().filter(Task::isDone).count();
+    }
+
+    /**
+     * Processes one user command and returns the outcome of that command.
      *
      * @param input the raw command entered by the user
-     * @return the response text, or an empty string when there is nothing to show
+     * @return the reply text and the kind of reply it is
      */
-    public String executeCommand(String input) {
+    public CommandResult executeCommand(String input) {
         Parser parser = new Parser(input);
         String command = parser.getCommandWord();
         if (command.isEmpty()) {
-            return Ui.MESSAGE_EMPTY_INPUT;
+            return CommandResult.error(Ui.MESSAGE_EMPTY_INPUT);
         }
         switch (command) {
             case "bye":
@@ -91,8 +123,10 @@ public class Nova {
                 return handleFind(parser);
             case "archive":
                 return handleArchive(parser);
+            case "help":
+                return handleHelp(parser);
             default:
-                return Ui.MESSAGE_INVALID_COMMAND;
+                return CommandResult.error(Ui.MESSAGE_INVALID_COMMAND);
         }
     }
 
@@ -118,9 +152,9 @@ public class Nova {
         ui.greet(nova.getStartupWarning());
         while (true) {
             String input = scanner.nextLine();
-            String response = nova.executeCommand(input);
-            if (!response.isEmpty()) {
-                ui.showMessage(response);
+            CommandResult result = nova.executeCommand(input);
+            if (!result.text().isEmpty()) {
+                ui.showMessage(result.text());
             }
             if (nova.isExitCommand(input)) {
                 break;
@@ -129,64 +163,79 @@ public class Nova {
     }
 
     /** Handles the bye command, saving the tasks before the app exits. */
-    private String handleBye(Parser parser) {
+    private CommandResult handleBye(Parser parser) {
         if (parser.hasArgument()) {
-            return extraArgumentsMessage("bye");
+            return CommandResult.error(extraArgumentsMessage("bye"));
         }
-        return MESSAGE_BYE + saveTasks();
+        storage.save(taskList.getAll());
+        return withStorageWarning(CommandResult.info(MESSAGE_BYE));
     }
 
     /** Handles the list command. */
-    private String handleList(Parser parser) {
+    private CommandResult handleList(Parser parser) {
         if (parser.hasArgument()) {
-            return extraArgumentsMessage("list");
+            return CommandResult.error(extraArgumentsMessage("list"));
         }
-        return formatTaskList();
+        if (taskList.size() == 0) {
+            return CommandResult.info(Ui.MESSAGE_LIST_EMPTY);
+        }
+        return CommandResult.info(formatTaskList());
+    }
+
+    /** Handles the help command, which lists every command Nova understands. */
+    private CommandResult handleHelp(Parser parser) {
+        if (parser.hasArgument()) {
+            return CommandResult.error(extraArgumentsMessage("help"));
+        }
+        return CommandResult.info(Ui.MESSAGE_HELP);
     }
 
     /** Handles the todo command, which needs a non-empty description. */
-    private String handleTodo(Parser parser) {
+    private CommandResult handleTodo(Parser parser) {
         if (!parser.hasArgument()) {
-            return Ui.MESSAGE_TODO_EMPTY;
+            return CommandResult.error(Ui.MESSAGE_TODO_EMPTY);
         }
         Task task = new Todo(parser.getArguments());
         taskList.add(task);
-        return formatAddedMessage(task) + saveTasks();
+        return replyAfterSave(formatAddedMessage(task));
     }
 
     /** Handles the find command, which needs a non-empty keyword. */
-    private String handleFind(Parser parser) {
+    private CommandResult handleFind(Parser parser) {
         if (!parser.hasArgument()) {
-            return Ui.MESSAGE_FIND_EMPTY;
+            return CommandResult.error(Ui.MESSAGE_FIND_EMPTY);
         }
         String keyword = parser.getArguments().toLowerCase();
         ArrayList<Task> matches = taskList.getAll().stream()
                 .filter(task -> task.getDescription().toLowerCase().contains(keyword))
                 .collect(Collectors.toCollection(ArrayList::new));
-        return formatFindResults(matches);
+        return CommandResult.info(formatFindResults(matches));
     }
 
     /**
      * Handles the archive command, moving completed tasks to the archive file.
      *
      * @param parser the parsed user input
-     * @return the response text for the command
+     * @return the outcome of the command
      */
-    private String handleArchive(Parser parser) {
+    private CommandResult handleArchive(Parser parser) {
         if (parser.hasArgument()) {
-            return extraArgumentsMessage("archive");
+            return CommandResult.error(extraArgumentsMessage("archive"));
         }
         ArrayList<Task> archived = taskList.removeCompletedTasks();
         if (archived.isEmpty()) {
-            return Ui.MESSAGE_ARCHIVE_EMPTY;
+            return CommandResult.info(Ui.MESSAGE_ARCHIVE_EMPTY);
         }
         storage.appendToArchive(archived);
-        String warning = saveTasks();
+        String archiveWarning = storage.consumeErrorMessage();
+        storage.save(taskList.getAll());
+        String warning = archiveWarning.isEmpty() ? storage.consumeErrorMessage() : archiveWarning;
         String body = IntStream.range(0, archived.size())
-                .mapToObj(i -> (i + 1) + "." + archived.get(i))
+                .mapToObj(i -> (i + 1) + ". " + archived.get(i))
                 .collect(Collectors.joining("\n"));
-        return Ui.MESSAGE_ARCHIVE_HEADER + "\n" + body + "\n"
-                + taskCountMessage(taskList.size()) + warning;
+        CommandResult result = CommandResult.success(Ui.MESSAGE_ARCHIVE_HEADER + "\n" + body + "\n"
+                + taskCountMessage(taskList.size()));
+        return withStorageWarning(result, warning);
     }
 
     /**
@@ -194,25 +243,25 @@ public class Nova {
      * required, and /by may appear only once.
      *
      * @param parser the parsed user input
-     * @return the response text for the command
+     * @return the outcome of the command
      */
-    private String handleDeadline(Parser parser) {
+    private CommandResult handleDeadline(Parser parser) {
         String arguments = parser.getArguments();
         if (Parser.countOf(arguments, PARAMETER_BY) > 1) {
-            return Ui.MESSAGE_DUPLICATE_DEADLINE_DATE;
+            return CommandResult.error(Ui.MESSAGE_DUPLICATE_DEADLINE_DATE);
         }
         String[] halves = Parser.splitAround(arguments, PARAMETER_BY);
         boolean isWellFormed = halves.length == 2 && !halves[0].isEmpty() && !halves[1].isEmpty();
         if (!isWellFormed) {
-            return Ui.MESSAGE_INVALID_DEADLINE;
+            return CommandResult.error(Ui.MESSAGE_INVALID_DEADLINE);
         }
         LocalDate by = parseDate(halves[1]);
         if (by == null) {
-            return Ui.MESSAGE_INVALID_DATE;
+            return CommandResult.error(Ui.MESSAGE_INVALID_DATE);
         }
         Task task = new Deadline(halves[0], by);
         taskList.add(task);
-        return formatAddedMessage(task) + saveTasks();
+        return replyAfterSave(formatAddedMessage(task));
     }
 
     /**
@@ -221,12 +270,12 @@ public class Nova {
      * starts.
      *
      * @param parser the parsed user input
-     * @return the response text for the command
+     * @return the outcome of the command
      */
-    private String handleEvent(Parser parser) {
+    private CommandResult handleEvent(Parser parser) {
         String arguments = parser.getArguments();
         if (Parser.countOf(arguments, PARAMETER_FROM) > 1 || Parser.countOf(arguments, PARAMETER_TO) > 1) {
-            return Ui.MESSAGE_DUPLICATE_EVENT_DATE;
+            return CommandResult.error(Ui.MESSAGE_DUPLICATE_EVENT_DATE);
         }
         String[] fromHalves = Parser.splitAround(arguments, PARAMETER_FROM);
         String[] toHalves = fromHalves.length == 2
@@ -234,19 +283,19 @@ public class Nova {
         boolean isWellFormed = toHalves.length == 2
                 && !fromHalves[0].isEmpty() && !toHalves[0].isEmpty() && !toHalves[1].isEmpty();
         if (!isWellFormed) {
-            return Ui.MESSAGE_INVALID_EVENT;
+            return CommandResult.error(Ui.MESSAGE_INVALID_EVENT);
         }
         LocalDate from = parseDate(toHalves[0]);
         LocalDate to = parseDate(toHalves[1]);
         if (from == null || to == null) {
-            return Ui.MESSAGE_INVALID_DATE;
+            return CommandResult.error(Ui.MESSAGE_INVALID_DATE);
         }
         if (!from.isBefore(to)) {
-            return Ui.MESSAGE_INVALID_EVENT_RANGE;
+            return CommandResult.error(Ui.MESSAGE_INVALID_EVENT_RANGE);
         }
         Task task = new Event(fromHalves[0], from, to);
         taskList.add(task);
-        return formatAddedMessage(task) + saveTasks();
+        return replyAfterSave(formatAddedMessage(task));
     }
 
     /**
@@ -254,23 +303,23 @@ public class Nova {
      *
      * @param command one of mark, unmark or delete
      * @param parser the parsed user input
-     * @return the response text for the command
+     * @return the outcome of the command
      */
-    private String handleIndexedCommand(String command, Parser parser) {
+    private CommandResult handleIndexedCommand(String command, Parser parser) {
         if (!parser.hasArgument()) {
-            return Ui.MESSAGE_NUMBER_REQUIRED;
+            return CommandResult.error(Ui.MESSAGE_NUMBER_REQUIRED);
         }
         if (!parser.hasSingleWordArgument()) {
-            return Ui.MESSAGE_ONE_TASK_NUMBER;
+            return CommandResult.error(Ui.MESSAGE_ONE_TASK_NUMBER);
         }
         int index = parseTaskIndex(parser.getArguments(), taskList.size());
         if (index < 0) {
-            return taskNumberError(parser.getArguments(), taskList.size());
+            return CommandResult.error(taskNumberError(parser.getArguments(), taskList.size()));
         }
         if (command.equals("delete")) {
             Task removed = taskList.remove(index);
-            return MESSAGE_REMOVED + "\n" + removed + "\n"
-                    + taskCountMessage(taskList.size()) + saveTasks();
+            return replyAfterSave(MESSAGE_REMOVED + "\n" + removed + "\n"
+                    + taskCountMessage(taskList.size()));
         }
         Task task = taskList.get(index);
         if (command.equals("mark")) {
@@ -278,7 +327,8 @@ public class Nova {
         } else {
             task.markUndone();
         }
-        return (command.equals("mark") ? MESSAGE_MARKED : MESSAGE_UNMARKED) + "\n" + task + saveTasks();
+        return replyAfterSave((command.equals("mark") ? MESSAGE_MARKED : MESSAGE_UNMARKED)
+                + "\n" + task);
     }
 
     /** Returns the message for a command that was given arguments it does not take. */
@@ -297,27 +347,54 @@ public class Nova {
     }
 
     /**
-     * Saves the current tasks and reports any storage problem to the user.
+     * Saves the current tasks and builds the reply, reporting any storage problem
+     * as a failed result so that the user notices it.
      *
-     * @return a warning line, or an empty string when the save succeeded
+     * @param text the reply text for the command
+     * @return the outcome of the command, including any storage warning
      */
-    private String saveTasks() {
+    private CommandResult replyAfterSave(String text) {
         storage.save(taskList.getAll());
+        return withStorageWarning(CommandResult.success(text));
+    }
+
+    /**
+     * Attaches any storage warning to a reply, and marks the reply as an error
+     * when there is one, because losing changes matters more than the styling.
+     *
+     * @param result the reply built by the command handler
+     * @return the reply, with any storage warning attached
+     */
+    private CommandResult withStorageWarning(CommandResult result) {
         String warning = storage.consumeErrorMessage();
-        return warning.isEmpty() ? "" : "\n" + warning;
+        return withStorageWarning(result, warning);
+    }
+
+    /**
+     * Attaches a known storage warning to a reply.
+     *
+     * @param result the reply built by the command handler
+     * @param warning the warning to attach, or an empty string when there is none
+     * @return the reply, with the warning attached
+     */
+    private CommandResult withStorageWarning(CommandResult result, String warning) {
+        if (warning.isEmpty()) {
+            return result;
+        }
+        return CommandResult.error(result.text() + "\n" + warning);
     }
 
     /** Formats all tasks using their one-based task numbers. */
     private String formatTaskList() {
         return IntStream.range(0, taskList.size())
-                .mapToObj(i -> (i + 1) + "." + taskList.get(i))
+                .mapToObj(i -> (i + 1) + ". " + taskList.get(i))
                 .collect(Collectors.joining("\n"));
     }
 
     /** Formats the matching tasks of a find command, numbered from 1. */
     private String formatFindResults(ArrayList<Task> matches) {
         String body = IntStream.range(0, matches.size())
-                .mapToObj(i -> (i + 1) + "." + matches.get(i))
+                .mapToObj(i -> (i + 1) + ". " + matches.get(i))
                 .collect(Collectors.joining("\n"));
         return body.isEmpty() ? MESSAGE_FIND_HEADER : MESSAGE_FIND_HEADER + "\n" + body;
     }
