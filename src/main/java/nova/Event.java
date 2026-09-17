@@ -2,12 +2,13 @@ package nova;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 /**
  * Represents a task that happens between a start date and an end date.
  */
 public class Event extends Task {
-    private static final DateTimeFormatter OUTPUT_FORMAT = DateTimeFormatter.ofPattern("MMM d yyyy");
+    private static final DateTimeFormatter OUTPUT_FORMAT = DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH);
 
     private final LocalDate from;
     private final LocalDate to;

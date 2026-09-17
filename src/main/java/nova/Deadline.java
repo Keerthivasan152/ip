@@ -2,12 +2,13 @@ package nova;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 /**
  * Represents a task that must be done by a certain date.
  */
 public class Deadline extends Task {
-    private static final DateTimeFormatter OUTPUT_FORMAT = DateTimeFormatter.ofPattern("MMM d yyyy");
+    private static final DateTimeFormatter OUTPUT_FORMAT = DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH);
 
     private final LocalDate by;
 
