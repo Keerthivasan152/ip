@@ -33,8 +33,6 @@ public class MainWindow extends AnchorPane {
     @FXML
     public void initialize() {
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
-        dialogContainer.getChildren().add(
-                DialogBox.getNovaDialog("Hello! I'm Nova. What can I do for you?", novaImage));
         userInput.requestFocus();
     }
 
@@ -45,6 +43,11 @@ public class MainWindow extends AnchorPane {
      */
     public void setNova(Nova nova) {
         this.nova = nova;
+        String greeting = Nova.MESSAGE_GREETING;
+        if (!nova.getStartupWarning().isEmpty()) {
+            greeting = greeting + "\n" + nova.getStartupWarning();
+        }
+        dialogContainer.getChildren().add(DialogBox.getNovaDialog(greeting, novaImage));
     }
 
     /**
