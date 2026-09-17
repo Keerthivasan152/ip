@@ -15,14 +15,14 @@ import java.util.stream.IntStream;
  */
 public class Nova {
     /** The greeting shown when the application starts. */
-    public static final String MESSAGE_GREETING = "Hello! I'm Nova. What can I do for you?";
+    public static final String MESSAGE_GREETING = "Nova here. What can I do for you?";
 
-    private static final String MESSAGE_BYE = "Bye. Hope to see you again soon!";
-    private static final String MESSAGE_ADDED = "Got it. I've added this task:";
-    private static final String MESSAGE_REMOVED = "Noted. I've removed this task:";
-    private static final String MESSAGE_MARKED = "Nice! I've marked this task as done:";
-    private static final String MESSAGE_UNMARKED = "Ok, I've marked this task as not done yet:";
-    private static final String MESSAGE_FIND_HEADER = "Here are the matching tasks in your list:";
+    private static final String MESSAGE_BYE = "Signing off. Your tasks are saved.";
+    private static final String MESSAGE_ADDED = "Added to the list:";
+    private static final String MESSAGE_REMOVED = "Removed:";
+    private static final String MESSAGE_MARKED = "Done and dusted:";
+    private static final String MESSAGE_UNMARKED = "Back to pending:";
+    private static final String MESSAGE_FIND_HEADER = "Found these:";
     private static final String MESSAGE_TASK_COUNT_PREFIX = "Now you have ";
 
     private static final String PARAMETER_BY = "/by";
@@ -343,7 +343,11 @@ public class Nova {
 
     /** Formats the number-of-tasks sentence that closes most replies. */
     private String taskCountMessage(int count) {
-        return MESSAGE_TASK_COUNT_PREFIX + count + " tasks in the list.";
+        if (count == 0) {
+            return "Your list is empty.";
+        }
+        String noun = count == 1 ? " task" : " tasks";
+        return MESSAGE_TASK_COUNT_PREFIX + count + noun + " in the list.";
     }
 
     /**
@@ -427,10 +431,10 @@ public class Nova {
      * @param taskCount the number of tasks in the list
      * @return the message for an invalid or out-of-range task number
      */
-    private static String taskNumberError(String argument, int taskCount) {
+    private String taskNumberError(String argument, int taskCount) {
         try {
             int number = Integer.parseInt(argument);
-            return "There's no task at number " + number + ". You have " + taskCount + " tasks.";
+            return "There's no task at number " + number + ". " + taskCountMessage(taskCount);
         } catch (NumberFormatException e) {
             return Ui.MESSAGE_INVALID_NUMBER;
         }
