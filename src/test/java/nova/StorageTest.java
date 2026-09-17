@@ -1,6 +1,7 @@
 package nova;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -64,5 +65,54 @@ public class StorageTest {
         ArrayList<Task> loaded = storage.load();
         assertEquals(1, loaded.size());
         assertEquals("valid task", loaded.get(0).getDescription());
+    }
+
+    @Test
+    public void load_partlyCorruptedFile_reportsTheSkippedLinesOnce() throws IOException {
+        Path dir = tempDir.resolve("data");
+        Files.createDirectories(dir);
+        Files.writeString(dir.resolve("nova.txt"), "T | NOT_DONE | keep me\nGARBAGE\nALSO GARBAGE\n");
+        Storage storage = new Storage(dir.resolve("nova.txt").toString());
+        ArrayList<Task> loaded = storage.load();
+        assertEquals(1, loaded.size());
+        assertTrue(storage.consumeErrorMessage().contains("Skipped 2"));
+        assertEquals("", storage.consumeErrorMessage());
+    }
+
+    @Test
+    public void load_cleanFile_reportsNothing() throws IOException {
+        Path dir = tempDir.resolve("data");
+        Files.createDirectories(dir);
+        Files.writeString(dir.resolve("nova.txt"), "T | NOT_DONE | keep me\n");
+        Storage storage = new Storage(dir.resolve("nova.txt").toString());
+        storage.load();
+        assertEquals("", storage.consumeErrorMessage());
+    }
+
+    @Test
+    public void save_folderCannotBeCreated_reportsError() throws IOException {
+        Path blocker = tempDir.resolve("blocker");
+        Files.writeString(blocker, "a file, not a folder");
+        Storage storage = new Storage(blocker.resolve("nova.txt").toString());
+        ArrayList<Task> tasks = new ArrayList<>();
+        tasks.add(new Todo("read book"));
+        storage.save(tasks);
+        assertFalse(storage.consumeErrorMessage().isEmpty());
+    }
+
+    @Test
+    public void save_replacesThePreviousContent() throws IOException {
+        Path dir = tempDir.resolve("data");
+        Storage storage = new Storage(dir.resolve("nova.txt").toString());
+        ArrayList<Task> first = new ArrayList<>();
+        first.add(new Todo("first"));
+        first.add(new Todo("second"));
+        storage.save(first);
+        ArrayList<Task> second = new ArrayList<>();
+        second.add(new Todo("only one"));
+        storage.save(second);
+        ArrayList<Task> loaded = storage.load();
+        assertEquals(1, loaded.size());
+        assertEquals("only one", loaded.get(0).getDescription());
     }
 }
